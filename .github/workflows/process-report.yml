@@ -1,0 +1,88 @@
+name: Process Jannat report
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [telegram_report_received]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Select report
+        id: report
+        shell: bash
+        env:
+          DOWNLOAD_URL: ${{ github.event.client_payload.download_url }}
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            curl --fail --location "$DOWNLOAD_URL" -o telegram-report.xlsx
+            echo "file=telegram-report.xlsx" >> "$GITHUB_OUTPUT"
+          else
+            echo "file=sample_input/Jannat_Sales_Daily_Template.xlsx" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run tests
+        run: PYTHONPATH=src pytest -q tests/test_commercial.py --import-mode=importlib
+
+      - name: Generate HTML report
+        run: |
+          PYTHONPATH=src python src/process_report.py \
+            --input "${{ steps.report.outputs.file }}" \
+            --html public/index.html \
+            --json public/latest.json
+
+      - name: Upload completed report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jannat-consolidated-report
+          path: |
+            public/index.html
+            public/latest.json
+
+      - name: Return report to Telegram bot
+        if: github.event_name == 'repository_dispatch'
+        env:
+          CALLBACK_URL: ${{ github.event.client_payload.callback_url }}
+        run: |
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          import urllib.request
+          from pathlib import Path
+
+          html = Path("public/index.html").read_bytes()
+          summary = json.loads(Path("public/latest.json").read_text(encoding="utf-8"))
+
+          payload = json.dumps({
+              "html_base64": base64.b64encode(html).decode("ascii"),
+              "summary": summary,
+              "verified": bool(summary.get("verified")),
+          }).encode("utf-8")
+
+          request = urllib.request.Request(
+              os.environ["CALLBACK_URL"],
+              data=payload,
+              headers={
+                  "Content-Type": "application/json",
+                  "User-Agent": "Jannat-GitHub-Actions/1.0",
+              },
+              method="POST",
+          )
+
+          with urllib.request.urlopen(request, timeout=60) as response:
+              print(response.read().decode("utf-8"))
+          PY
