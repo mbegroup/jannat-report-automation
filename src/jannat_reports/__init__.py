@@ -1,0 +1,2 @@
+"""Jannat daily report processing."""
+

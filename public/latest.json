@@ -1,0 +1,168 @@
+{
+  "source_file": "Jannat_Sales_Daily_Template.xlsx",
+  "meta": {
+    "date": "2026-07-16T00:00:00",
+    "weekday": "Четверг",
+    "leader": "Байтиков Баястан",
+    "staff": "5 из 5"
+  },
+  "kpi": {
+    "calls": {
+      "plan_day": 20,
+      "fact_day": 15,
+      "plan_month": 440,
+      "fact_month": 156
+    },
+    "meetings": {
+      "plan_day": 3,
+      "fact_day": 0,
+      "plan_month": 60,
+      "fact_month": 15
+    },
+    "revenue": {
+      "plan_day": 813161,
+      "fact_day": 0,
+      "plan_month": 24394821,
+      "fact_month": 6591854
+    }
+  },
+  "managers": [
+    {
+      "name": "Байтиков Баястан",
+      "calls": 4,
+      "meetings": 0,
+      "companies": 1,
+      "contracts": 0,
+      "revenue": 497000,
+      "focus": "Резорт КТ",
+      "comment": "Все сделки в работе"
+    },
+    {
+      "name": "Тентикеев Эрмек",
+      "calls": 4,
+      "meetings": 0,
+      "companies": 3,
+      "contracts": 1,
+      "revenue": 974000,
+      "focus": "Резорт КТ",
+      "comment": "Все сделки в работе"
+    },
+    {
+      "name": "Алмазбек у. Медер",
+      "calls": 4,
+      "meetings": 1,
+      "companies": 5,
+      "contracts": 0,
+      "revenue": 324170,
+      "focus": "Ридженси Бишкек",
+      "comment": "Все сделки в работе"
+    },
+    {
+      "name": "Эркинова Акылай",
+      "calls": 3,
+      "meetings": 0,
+      "companies": 0,
+      "contracts": 0,
+      "revenue": 0,
+      "focus": "Ридженси Бишкек",
+      "comment": "Все сделки в работе"
+    },
+    {
+      "name": "Арзиева Арчагуль (онлайн)",
+      "calls": 1,
+      "meetings": 0,
+      "companies": 0,
+      "contracts": 0,
+      "revenue": 17000,
+      "focus": "Все объекты",
+      "comment": "Закрытие сделок происходит раз в месяц."
+    }
+  ],
+  "detail_totals": {
+    "calls_all": 16,
+    "calls_b2b": 15,
+    "meetings": 1,
+    "companies": 9,
+    "contracts": 1,
+    "revenue": 1812170
+  },
+  "reported_totals": {
+    "calls_all": 16,
+    "meetings": 1,
+    "companies": 9,
+    "contracts": 1,
+    "revenue": 1812170
+  },
+  "checks": [
+    {
+      "name": "Строка ИТОГО менеджеров",
+      "ok": true,
+      "expected": {
+        "calls_all": 16,
+        "calls_b2b": 15,
+        "meetings": 1,
+        "companies": 9,
+        "contracts": 1,
+        "revenue": 1812170
+      },
+      "actual": {
+        "calls_all": 16,
+        "meetings": 1,
+        "companies": 9,
+        "contracts": 1,
+        "revenue": 1812170
+      }
+    },
+    {
+      "name": "KPI звонков B2B",
+      "ok": true,
+      "expected": 15,
+      "actual": 15
+    },
+    {
+      "name": "KPI встреч",
+      "ok": false,
+      "expected": 1,
+      "actual": 0
+    },
+    {
+      "name": "KPI выручки дня",
+      "ok": false,
+      "expected": 1812170,
+      "actual": 0
+    }
+  ],
+  "verified": false,
+  "pipeline": [
+    {
+      "client": "Федерация Каратэ До",
+      "object": "Ридженси Бишкек",
+      "period": "13-25.09.2010",
+      "amount": 3000000,
+      "stage": "Вел переговоры с организатором, обсудили наличие свободных номеров по категориям. Ждем подтверждения.",
+      "next_step": "Получения положительной обратной связи"
+    },
+    {
+      "client": "ИВМИ ЦА",
+      "object": "Резорт КТ",
+      "period": "26-28 июля",
+      "amount": 415000,
+      "stage": "Сегодня связывались с гостями, пока все еще ждем подтверждение. По бюджету по словам организатора проходим.",
+      "next_step": "Получения положительной обратной связи"
+    }
+  ],
+  "pipeline_total": 3415000,
+  "online_filled": false,
+  "texts": {
+    "result": "Работа над спящими клиентами.",
+    "problem": "Работа над спящими клиентами, работа над сегментом МО.",
+    "action": "Совершение холодных звонков.",
+    "tomorrow": "Разбор организаций по сегментам и глубокое изучение рынка по сотрудничеству.",
+    "idea": "Запуск таргета на В2В сегмент через аккаунт Хотелс&Резортс."
+  },
+  "formula_audit": {
+    "D8": "=4+3+4+4",
+    "D9": 0,
+    "D10": null
+  }
+}
