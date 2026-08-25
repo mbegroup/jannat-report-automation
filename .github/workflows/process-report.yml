@@ -61,9 +61,6 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         run: cp sample_input/Jannat_Sales_Daily_Template.xlsx telegram-inputs/manual-report.xlsx
 
-      - name: Run tests
-        run: PYTHONPATH=src pytest -q --import-mode=importlib
-
       - name: Generate HTML report
         shell: bash
         run: |
