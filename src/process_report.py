@@ -8,7 +8,7 @@ from jannat_reports.commercial import parse_commercial_report
 from jannat_reports.gm_august import parse_gm_august_report
 from jannat_reports.gm_html import render_gm_report
 from jannat_reports.html_report import render_report
-from jannat_reports.network import parse_network_report
+from jannat_reports.network import build_claude_export, parse_network_report
 from jannat_reports.network_html import render_network_report
 
 
@@ -36,15 +36,18 @@ def main() -> None:
             director_notes=director_notes,
         )
         renderer = render_network_report
+        json_data = build_claude_export(data)
     elif gm_inputs:
         data = parse_gm_august_report(gm_inputs[0])
         renderer = render_gm_report
+        json_data = data
     else:
         data = parse_commercial_report(commercial_inputs[0])
         renderer = render_report
+        json_data = data
     Path(args.html).parent.mkdir(parents=True, exist_ok=True)
     Path(args.json).parent.mkdir(parents=True, exist_ok=True)
-    Path(args.json).write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    Path(args.json).write_text(json.dumps(json_data, ensure_ascii=False, indent=2), encoding="utf-8")
     renderer(data, args.html)
     print(f"Готово: {args.html}; verified={data['verified']}")
 
