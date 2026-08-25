@@ -170,9 +170,13 @@ def _filled_day(sheet, rows: dict[str, int | None]) -> bool:
     return False
 
 
-def parse_gm_august_report(path: str | Path, target_sheet: str | None = None) -> dict[str, Any]:
+def parse_gm_august_report(
+    path: str | Path,
+    target_sheet: str | None = None,
+    workbook: Any | None = None,
+) -> dict[str, Any]:
     path = Path(path)
-    book = load_workbook(path, data_only=True)
+    book = workbook or load_workbook(path, data_only=True)
     day_names = [name for name in book.sheetnames if DAY_SHEET.fullmatch(name)]
     if not day_names:
         raise ValueError("В книге не найдены дневные листы формата ДД.ММ")
