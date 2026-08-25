@@ -21,43 +21,45 @@ jobs:
       - name: Install packages
         run: pip install -r requirements.txt
 
-      - name: Download Telegram reports
-        shell: bash
+      - name: Prepare report directory
+        run: mkdir -p telegram-inputs
+
+      - name: Download network reports
+        if: github.event.action == 'telegram_network_report_requested'
+        shell: python
         env:
-          DOWNLOAD_URL: ${{ github.event.client_payload.download_url }}
           FILES_JSON: ${{ toJson(github.event.client_payload.files) }}
           DIRECTOR_NOTES_JSON: ${{ toJson(github.event.client_payload.director_notes) }}
         run: |
-          mkdir -p telegram-inputs
-          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            if [ "${{ github.event.action }}" = "telegram_network_report_requested" ]; then
-              python - <<'PY'
-              import json
-              import os
-              import pathlib
-              import urllib.request
+          import json
+          import os
+          import pathlib
+          import urllib.request
 
-              destination = pathlib.Path("telegram-inputs")
-              files = json.loads(os.environ["FILES_JSON"])
-              for index, item in enumerate(files):
-                  safe_name = pathlib.Path(item.get("file_name") or f"report-{index}.xlsx").name
-                  request = urllib.request.Request(
-                      item["download_url"],
-                      headers={"User-Agent": "Jannat-GitHub-Actions/1.0"},
-                  )
-                  with urllib.request.urlopen(request, timeout=60) as response:
-                      (destination / safe_name).write_bytes(response.read())
-              pathlib.Path("director-notes.json").write_text(
-                  os.environ.get("DIRECTOR_NOTES_JSON") or "[]",
-                  encoding="utf-8",
+          destination = pathlib.Path("telegram-inputs")
+          files = json.loads(os.environ["FILES_JSON"])
+          for index, item in enumerate(files):
+              safe_name = pathlib.Path(item.get("file_name") or f"report-{index}.xlsx").name
+              request = urllib.request.Request(
+                  item["download_url"],
+                  headers={"User-Agent": "Jannat-GitHub-Actions/1.0"},
               )
-              PY
-            else
-              curl --fail --location "$DOWNLOAD_URL" -o telegram-inputs/telegram-report.xlsx
-            fi
-          else
-            cp sample_input/Jannat_Sales_Daily_Template.xlsx telegram-inputs/manual-report.xlsx
-          fi
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  (destination / safe_name).write_bytes(response.read())
+          pathlib.Path("director-notes.json").write_text(
+              os.environ.get("DIRECTOR_NOTES_JSON") or "[]",
+              encoding="utf-8",
+          )
+
+      - name: Download individual report
+        if: github.event.action == 'telegram_report_received'
+        env:
+          DOWNLOAD_URL: ${{ github.event.client_payload.download_url }}
+        run: curl --fail --location "$DOWNLOAD_URL" -o telegram-inputs/telegram-report.xlsx
+
+      - name: Select manual sample
+        if: github.event_name == 'workflow_dispatch'
+        run: cp sample_input/Jannat_Sales_Daily_Template.xlsx telegram-inputs/manual-report.xlsx
 
       - name: Run tests
         run: PYTHONPATH=src pytest -q --import-mode=importlib
@@ -83,10 +85,10 @@ jobs:
 
       - name: Return report to Telegram bot
         if: github.event_name == 'repository_dispatch'
+        shell: python
         env:
           CALLBACK_URL: ${{ github.event.client_payload.callback_url }}
         run: |
-          python - <<'PY'
           import base64
           import json
           import os
@@ -111,4 +113,3 @@ jobs:
           )
           with urllib.request.urlopen(request, timeout=60) as response:
               print(response.read().decode("utf-8"))
-          PY
