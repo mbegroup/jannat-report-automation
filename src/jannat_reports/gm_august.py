@@ -46,6 +46,11 @@ METRIC_LABELS = {
     "memberships": "Активных абонементов",
 }
 
+METRIC_ALIASES = {
+    "operating_expenses": ("ИТОГО ОПЕРАЦИОННЫХ РАСХОДОВ", "ИТОГО ВСЕХ РАСХОДОВ"),
+    "ebitda": ("EBITDA", "ОПЕРАЦИОННАЯ ПРИБЫЛЬ (Daily GOP)"),
+}
+
 OBJECT_PATTERNS = (
     ("sb", ("SUL_BSH", "SULTAN_BSH", "СУЛТАН БИШКЕК")),
     ("skk", ("SUL_KK", "SULTAN_KK", "СУЛТАН КЫЗЫЛ")),
@@ -58,7 +63,8 @@ OBJECT_PATTERNS = (
 OPTIONAL_METRICS = {
     "conference", "restaurant", "pool_bar", "banquet", "sbt", "medical",
     "rent", "other_income", "depreciation", "credit", "profit_tax",
-    "memberships",
+    "memberships", "online_rooms", "income_net", "depreciation", "credit",
+    "ebit", "profit_tax", "net_profit", "profitability",
 }
 
 
@@ -124,12 +130,17 @@ def _metric_rows(sheet) -> dict[str, int | None]:
     # More specific labels must win over their shorter parents.
     ordered = sorted(METRIC_LABELS.items(), key=lambda item: len(item[1]), reverse=True)
     for key, label in ordered:
-        try:
-            rows[key] = _find_row(sheet, label)
-        except ValueError:
+        labels = METRIC_ALIASES.get(key, (label,))
+        rows[key] = None
+        for candidate in labels:
+            try:
+                rows[key] = _find_row(sheet, candidate)
+                break
+            except ValueError:
+                continue
+        if rows[key] is None:
             if key not in OPTIONAL_METRICS:
-                raise
-            rows[key] = None
+                raise ValueError(f"Не найден показатель: {label}")
     return rows
 
 
@@ -227,7 +238,9 @@ def parse_gm_august_report(
             "expected": round(metrics["income"]["fact_accum"] - metrics["operating_expenses"]["fact_accum"]),
             "actual": round(metrics["ebitda"]["fact_accum"]),
         },
-        {
+    ]
+    if rows["net_profit"] and rows["ebit"]:
+        checks.append({
             "name": "Чистая прибыль = EBIT − налог",
             "ok": _close(
                 metrics["net_profit"]["fact_accum"],
@@ -235,8 +248,7 @@ def parse_gm_august_report(
             ),
             "expected": round(metrics["ebit"]["fact_accum"] - metrics["profit_tax"]["fact_accum"]),
             "actual": round(metrics["net_profit"]["fact_accum"]),
-        },
-    ]
+        })
 
     reviews = []
     review_header = _find_row(sheet, "ОТЗЫВЫ ГОСТЕЙ")
