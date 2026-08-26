@@ -79,6 +79,9 @@ def _claude_hotel(hotel: dict[str, Any]) -> dict[str, Any]:
         warnings.append("Один из каналов номерного фонда превышает общий доход")
     return {
         "slug": CLAUDE_SLUGS[hotel["object_key"]],
+        "name": hotel["meta"]["hotel"],
+        "gm": hotel["meta"]["gm"],
+        "room_fund": _integer(hotel["meta"]["room_fund"]),
         "source_file": hotel["source_file"],
         "rooms_sold": day("rooms_sold"),
         "occupancy": float(metric("occupancy")["fact_day"] or 0),
