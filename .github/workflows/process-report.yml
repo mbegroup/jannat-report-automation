@@ -63,6 +63,9 @@ jobs:
 
       - name: Generate HTML report
         shell: bash
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_MODEL: claude-sonnet-5
         run: |
           mapfile -t FILES < <(find telegram-inputs -name "*.xlsx" -type f | sort)
           ARGS=()
