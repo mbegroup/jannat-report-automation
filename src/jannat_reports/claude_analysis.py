@@ -85,7 +85,6 @@ def analyze_with_claude(report: dict[str, Any]) -> dict[str, Any] | None:
         data=json.dumps({
             "model": os.environ.get("CLAUDE_MODEL", "claude-sonnet-5"),
             "max_tokens": 2200,
-            "temperature": 0.1,
             "messages": [{"role": "user", "content": prompt}],
         }).encode("utf-8"),
         headers={
