@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from jannat_reports.commercial import parse_commercial_report
+from jannat_reports.claude_analysis import analyze_with_claude
 from jannat_reports.gm_august import parse_gm_august_report
 from jannat_reports.gm_html import render_gm_report
 from jannat_reports.html_report import render_report
@@ -37,6 +38,9 @@ def main() -> None:
         )
         renderer = render_network_report
         json_data = build_claude_export(data)
+        claude_analysis = analyze_with_claude(json_data)
+        if claude_analysis:
+            json_data["claude_analysis"] = claude_analysis
     elif gm_inputs:
         data = parse_gm_august_report(gm_inputs[0])
         renderer = render_gm_report
@@ -48,7 +52,10 @@ def main() -> None:
     Path(args.html).parent.mkdir(parents=True, exist_ok=True)
     Path(args.json).parent.mkdir(parents=True, exist_ok=True)
     Path(args.json).write_text(json.dumps(json_data, ensure_ascii=False, indent=2), encoding="utf-8")
-    renderer(data, args.html)
+    if renderer is render_network_report:
+        renderer(data, args.html, export_data=json_data)
+    else:
+        renderer(data, args.html)
     print(f"Готово: {args.html}; verified={data['verified']}")
 
 
