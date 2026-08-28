@@ -53,8 +53,25 @@ def _extract_json(text: str) -> dict[str, Any]:
         text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
     start, end = text.find("{"), text.rfind("}")
     if start < 0 or end <= start:
-        raise ValueError("Claude не вернул JSON")
-    result = json.loads(text[start:end + 1])
+        return {
+            "executive_summary": text or "Claude не вернул текст анализа.",
+            "highlights": [],
+            "risks": [],
+            "actions": [],
+            "hotel_insights": [],
+            "voice_summary": text,
+        }
+    try:
+        result = json.loads(text[start:end + 1])
+    except json.JSONDecodeError:
+        return {
+            "executive_summary": text,
+            "highlights": [],
+            "risks": [],
+            "actions": [],
+            "hotel_insights": [],
+            "voice_summary": text,
+        }
     if not isinstance(result, dict):
         raise ValueError("Ответ Claude должен быть объектом JSON")
     return result
