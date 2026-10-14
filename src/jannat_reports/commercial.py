@@ -35,7 +35,7 @@ def parse_commercial_report(path: str | Path) -> dict[str, Any]:
     online_sheet = _sheet(book, "Онлайн")
 
     managers = []
-    for row in range(14, 19):
+    for row in range(13, 18):
         managers.append({
             "name": _clean(sheet[f"A{row}"].value),
             "calls": int(_num(sheet[f"B{row}"].value)),
@@ -56,11 +56,11 @@ def parse_commercial_report(path: str | Path) -> dict[str, Any]:
         "revenue": sum(x["revenue"] for x in managers),
     }
     reported = {
-        "calls_all": round(_num(sheet["B19"].value)),
-        "meetings": round(_num(sheet["C19"].value)),
-        "companies": round(_num(sheet["D19"].value)),
-        "contracts": round(_num(sheet["E19"].value)),
-        "revenue": round(_num(sheet["F19"].value)),
+        "calls_all": round(_num(sheet["B18"].value)),
+        "meetings": round(_num(sheet["C18"].value)),
+        "companies": round(_num(sheet["D18"].value)),
+        "contracts": round(_num(sheet["E18"].value)),
+        "revenue": round(_num(sheet["F18"].value)),
     }
     kpi = {
         "calls": {"plan_day": round(_num(sheet["C8"].value)), "fact_day": round(_num(sheet["D8"].value)), "plan_month": round(_num(sheet["F8"].value)), "fact_month": round(_num(sheet["G8"].value))},
@@ -74,7 +74,7 @@ def parse_commercial_report(path: str | Path) -> dict[str, Any]:
         {"name": "KPI выручки дня", "ok": abs(detail["revenue"] - kpi["revenue"]["fact_day"]) <= 1, "expected": detail["revenue"], "actual": kpi["revenue"]["fact_day"]},
     ]
     pipeline = []
-    for row in range(23, 25):
+    for row in range(22, 24):
         if sheet[f"A{row}"].value:
             pipeline.append({"client": _clean(sheet[f"A{row}"].value), "object": _clean(sheet[f"B{row}"].value), "period": _clean(sheet[f"D{row}"].value), "amount": round(_num(sheet[f"F{row}"].value)), "stage": _clean(sheet[f"G{row}"].value), "next_step": _clean(sheet[f"K{row}"].value)})
     online_filled = any(online_sheet.cell(r, c).value not in (None, "") for r in range(6, 11) for c in range(2, 8))
