@@ -34,18 +34,54 @@ jobs:
           import json
           import os
           import pathlib
+          import time
+          import urllib.error
           import urllib.request
 
           destination = pathlib.Path("telegram-inputs")
           files = json.loads(os.environ["FILES_JSON"])
+
           for index, item in enumerate(files):
-              safe_name = pathlib.Path(item.get("file_name") or f"report-{index}.xlsx").name
-              request = urllib.request.Request(
-                  item["download_url"],
-                  headers={"User-Agent": "Jannat-GitHub-Actions/1.0"},
-              )
-              with urllib.request.urlopen(request, timeout=60) as response:
-                  (destination / safe_name).write_bytes(response.read())
+              safe_name = pathlib.Path(
+                  item.get("file_name") or f"report-{index}.xlsx"
+              ).name
+              target = destination / safe_name
+
+              for attempt in range(1, 4):
+                  try:
+                      request = urllib.request.Request(
+                          item["download_url"],
+                          headers={"User-Agent": "Jannat-GitHub-Actions/1.0"},
+                      )
+                      with urllib.request.urlopen(
+                          request,
+                          timeout=180,
+                      ) as response:
+                          file_content = response.read()
+
+                      target.write_bytes(file_content)
+                      print(
+                          f"Downloaded {safe_name} "
+                          f"({len(file_content)} bytes)"
+                      )
+                      break
+
+                  except (
+                      TimeoutError,
+                      urllib.error.URLError,
+                      OSError,
+                  ) as error:
+                      if attempt == 3:
+                          raise
+
+                      delay = attempt * 10
+                      print(
+                          f"Download attempt {attempt}/3 failed "
+                          f"for {safe_name}: {error}. "
+                          f"Retrying in {delay} seconds..."
+                      )
+                      time.sleep(delay)
+
           pathlib.Path("director-notes.json").write_text(
               os.environ.get("DIRECTOR_NOTES_JSON") or "[]",
               encoding="utf-8",
@@ -96,12 +132,15 @@ jobs:
           from pathlib import Path
 
           html = Path("public/index.html").read_bytes()
-          summary = json.loads(Path("public/latest.json").read_text(encoding="utf-8"))
+          summary = json.loads(
+              Path("public/latest.json").read_text(encoding="utf-8")
+          )
           payload = json.dumps({
               "html_base64": base64.b64encode(html).decode("ascii"),
               "summary": summary,
               "verified": bool(summary.get("verified")),
           }).encode("utf-8")
+
           request = urllib.request.Request(
               os.environ["CALLBACK_URL"],
               data=payload,
@@ -111,5 +150,9 @@ jobs:
               },
               method="POST",
           )
-          with urllib.request.urlopen(request, timeout=60) as response:
+
+          with urllib.request.urlopen(
+              request,
+              timeout=60,
+          ) as response:
               print(response.read().decode("utf-8"))
